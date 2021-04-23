@@ -82,19 +82,21 @@ func (py *pinyin) Mode(mode Mode) *pinyin {
 	return py
 }
 
-func (py *pinyin) Convert() (string, error) {
+func (py *pinyin) Convert() (string, string, error) {
 	if !initialized {
-		return "", ErrInitialize
+		return "", "",ErrInitialize
 	}
 
 	sr := []rune(py.origin)
 	words := make([]string, 0)
 	var temp string
+	var result2 string
 	for i, s := range sr {
 		_, ok := pinyinMap[s]
 		if !ok {
 			// 非中文处理
 			temp += string(s)
+			result2 += string(sr[i:i+1])
 			if i == len(sr)-1 {
 				words = append(words, temp)
 			}
@@ -102,21 +104,21 @@ func (py *pinyin) Convert() (string, error) {
 		}
 		word, err := getPinyin(s, py.mode)
 		if err != nil {
-			return "", err
+			return "","", err
 		}
 		if len(temp) > 0 {
-
 			words = append(words, temp)
 			temp = ""
 		}
 		if len(word) > 0 {
 			words = append(words, word)
+			result2 += word[0:1]
 		}
 	}
 	result := strings.Join(words, py.split)
 	result = strings.Replace(result, "  ", " ", -1)
 	result = strings.Replace(result, "  ", " ", -1)
-	return result, nil
+	return result,result2, nil
 }
 
 func getPinyin(hanzi rune, mode Mode) (string, error) {
